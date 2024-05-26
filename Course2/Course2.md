@@ -142,3 +142,41 @@ ssh -CNg -L 6006:127.0.0.1:6006 root@ssh.intern-ai.org.cn -p 34637
 等待页面加载完成后，输入提示语如下，效果图如下：
 
 ![image-20240524210003592](img/image-20240524210003592.png)
+
+## 任务3：使用`Lagent`运行`InternLM2-Chat-7B`模型
+
+### 3.1 配置基础环境
+
+调节开发机配置至30%A100后启动开发机，启动`demo`虚拟环境，切换到对应目录下，并进行`Lagent`源码安装：
+
+```python
+git clone https://gitee.com/internlm/lagent.git
+# git clone https://github.com/internlm/lagent.git
+cd /root/demo/lagent
+git checkout 581d9fb8987a5d9b72bb9ebd37a95efd47d479ac
+pip install -e . # 源码安装
+```
+
+![image-20240525121229444](img/image-20240525121229444.png)
+
+### 3.2 使用 `Lagent` 运行 `InternLM2-Chat-7B` 模型为内核的智能体
+
+进入`lagent`目录下，在终端中输入如下指令，构造模型软链接快捷访问方式：
+
+```python
+ln -s /root/share/new_models/Shanghai_AI_Laboratory/internlm2-chat-7b /root/models/internlm2-chat-7b
+```
+
+随后打开该目录下的`examples/internlm2_agent_web_demo_hf.py`文件，并修改为软链接路径下的模型：
+
+![image-20240526125854316](img/image-20240526125854316.png)
+
+之后输入下方运行命令：
+
+```python
+streamlit run /root/demo/lagent/examples/internlm2_agent_web_demo_hf.py --server.address 127.0.0.1 --server.port 6006
+```
+
+同样执行指令通过本地SSH指令连接到6006端口的IP地址，页面如下，并键入如下示例，结果如下：
+
+![image-20240526161946318](img/image-20240526161946318.png)
