@@ -180,3 +180,58 @@ streamlit run /root/demo/lagent/examples/internlm2_agent_web_demo_hf.py --server
 同样执行指令通过本地SSH指令连接到6006端口的IP地址，页面如下，并键入如下示例，结果如下：
 
 ![image-20240526161946318](img/image-20240526161946318.png)
+
+## 任务4：部署 `浦语·灵笔2` 模型
+
+### 4.1 配置基础环境
+
+将开发机配置切换到50%A100权限后，激活`demo`虚拟环境，并安装相应环境包：
+
+![image-20240527122910046](img/image-20240527122910046.png)
+
+随后克隆`InternLM-XComposer`对应资源：
+
+![image-20240527123139265](img/image-20240527123139265.png)
+
+接着在终端中输入相关命令构造模型的软链接快捷访问方式：
+
+```python
+ln -s /root/share/new_models/Shanghai_AI_Laboratory/internlm-xcomposer2-7b /root/models/internlm-xcomposer2-7b
+ln -s /root/share/new_models/Shanghai_AI_Laboratory/internlm-xcomposer2-vl-7b /root/models/internlm-xcomposer2-vl-7b
+```
+
+### 4.2 图文写作实战
+
+输入如下指令，执行对应脚本以启动`InternLM-XComposer`：
+
+```python
+cd /root/demo/InternLM-XComposer
+python /root/demo/InternLM-XComposer/examples/gradio_demo_composition.py  \
+--code_path /root/models/internlm-xcomposer2-7b \
+--private \
+--num_gpus 1 \
+--port 6006
+```
+
+随后，同前述操作，本地打开命令行窗口实现端口映射，打开`InternLM-XComposer`Web页面，点击提交，效果如下：
+
+![image-20240527125512138](img/image-20240527125512138.png)
+
+### 4.3 图片理解实战
+
+重新启动一个新的终端，输入如下指令，以启动`InternLM-XComposer2-vl`：
+
+```python
+conda activate demo
+
+cd /root/demo/InternLM-XComposer
+python /root/demo/InternLM-XComposer/examples/gradio_demo_chat.py  \
+--code_path /root/models/internlm-xcomposer2-vl-7b \
+--private \
+--num_gpus 1 \
+--port 6006
+```
+
+随后进行相同操作实现本地端口到开发机端口的映射，打开`InternLM-XComposer2-vl`，键入内容示例，效果如下：
+
+![image-20240527151039387](img/image-20240527151039387.png)
