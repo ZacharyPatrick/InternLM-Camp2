@@ -10,24 +10,24 @@
 # 如果你是在 InternStudio 平台，则从本地 clone 一个已有 pytorch 的环境：
 # pytorch    2.0.1   py3.10_cuda11.7_cudnn8.5.0_0
 
-studio-conda xtuner0.1.17
+studio-conda xtuner0.1.18
 # 如果你是在其他平台：
 # conda create --name xtuner0.1.17 python=3.10 -y
 
 # 激活环境
-conda activate xtuner0.1.17
+conda activate xtuner0.1.18
 # 进入家目录 （~的意思是 “当前用户的home路径”）
 cd ~
 # 创建版本文件夹并进入，以跟随本教程
-mkdir -p /root/xtuner0117 && cd /root/xtuner0117
+mkdir -p /root/xtuner0118 && cd /root/xtuner0118
 
 # 拉取 0.1.17 的版本源码
-git clone -b v0.1.17  https://github.com/InternLM/xtuner
+git clone -b v0.1.18  https://github.com/InternLM/xtuner
 # 无法访问github的用户请从 gitee 拉取:
 # git clone -b v0.1.15 https://gitee.com/Internlm/xtuner
 
 # 进入源码目录
-cd /root/xtuner0117/xtuner
+cd /root/xtuner0118/xtuner
 
 # 从源码安装 XTuner
 pip install -e '.[all]'
@@ -840,7 +840,7 @@ streamlit run /root/ft/web_demo/InternLM/chat/web_demo.py --server.address 127.0
 输入如下命令，以构建微调所需问答对数据：
 
 ```python
-cd ~ && git clone https://github.com/InternLM/tutorial -b camp2 && conda activate xtuner0.1.17 && cd tutorial
+cd ~ && git clone https://github.com/InternLM/tutorial -b camp2 && conda activate xtuner0.1.18 && cd tutorial
 
 python /root/tutorial/xtuner/llava/llava_data/repeat.py \
   -i /root/tutorial/xtuner/llava/llava_data/unique_data.json \
@@ -903,3 +903,73 @@ xtuner copy-cfg \
 
 #### 1.3 开始Finetune
 
+输入以下命令开始微调多模态LLM：
+
+```python
+cd /root/tutorial/xtuner/llava/
+xtuner train /root/tutorial/xtuner/llava/llava_internlm2_chat_1_8b_qlora_clip_vit_large_p14_336_lora_e1_gpu8_finetune_copy.py --deepspeed deepspeed_zero2
+```
+
+微调结束后结果如下所示：
+
+![image-20240603142907383](img/image-20240603142907383.png)
+
+#### 1.4 对比Finetune前后的性能差异
+
+##### 1.4.1 Finetune前
+
+输入以下命令以测试`Finetune`前多模态LLM性能：
+
+```python
+# 解决小bug
+export MKL_SERVICE_FORCE_INTEL=1
+export MKL_THREADING_LAYER=GNU
+
+# pth转huggingface
+xtuner convert pth_to_hf \
+  llava_internlm2_chat_1_8b_clip_vit_large_p14_336_e1_gpu8_pretrain \
+  /root/share/new_models/xtuner/iter_2181.pth \
+  /root/tutorial/xtuner/llava/llava_data/iter_2181_hf
+
+# 启动！
+xtuner chat /root/share/new_models/Shanghai_AI_Laboratory/internlm2-chat-1_8b \
+  --visual-encoder /root/share/new_models/openai/clip-vit-large-patch14-336 \
+  --llava /root/tutorial/xtuner/llava/llava_data/iter_2181_hf \
+  --prompt-template internlm2_chat \
+  --image /root/tutorial/xtuner/llava/llava_data/test_img/oph.jpg
+```
+
+待模型格式转换完成并启动聊天状态后键入内容示例如下，测试效果图如下所示：
+
+![image-20240603144631208](img/image-20240603144631208.png)
+
+可以看到，`Finetune`前，模型只会给图像打标题
+
+##### 1.4.2 Finetune后
+
+输入以下命令以测试`Finetune`后多模态LLM性能：
+
+```python
+# 解决小bug
+export MKL_SERVICE_FORCE_INTEL=1
+export MKL_THREADING_LAYER=GNU
+
+# pth转huggingface
+xtuner convert pth_to_hf \
+  /root/tutorial/xtuner/llava/llava_internlm2_chat_1_8b_qlora_clip_vit_large_p14_336_lora_e1_gpu8_finetune_copy.py \
+  /root/tutorial/xtuner/llava/work_dirs/llava_internlm2_chat_1_8b_qlora_clip_vit_large_p14_336_lora_e1_gpu8_finetune_copy/iter_1200.pth \
+  /root/tutorial/xtuner/llava/llava_data/iter_1200_hf
+
+# 启动！
+xtuner chat /root/share/new_models/Shanghai_AI_Laboratory/internlm2-chat-1_8b \
+  --visual-encoder /root/share/new_models/openai/clip-vit-large-patch14-336 \
+  --llava /root/tutorial/xtuner/llava/llava_data/iter_1200_hf \
+  --prompt-template internlm2_chat \
+  --image /root/tutorial/xtuner/llava/llava_data/test_img/oph.jpg
+```
+
+待模型格式转换完成并启动聊天状态后键入内容示例如下，测试效果图如下所示：
+
+![image-20240603145507482](img/image-20240603145507482.png)
+
+可以看到，`Finetune`后，模型会依据提示词正确回答问题了
